@@ -109,6 +109,19 @@ def equity_curve() -> list[dict]:
     return _read(EQUITY)
 
 
+def record_stop(position_id: str, stop: float, ts: str | None = None) -> None:
+    """Registra el stop vigente de una posición (trailing). Append-only en journal."""
+    _append(JOURNAL, {"ts": ts or _now(), "kind": "stop",
+                      "position_id": position_id, "text": str(stop)})
+
+
+def current_stop(position_id: str) -> float | None:
+    """Último stop registrado para la posición (None si solo está el inicial)."""
+    vals = [j for j in _read(JOURNAL)
+            if j.get("kind") == "stop" and j.get("position_id") == position_id]
+    return float(vals[-1]["text"]) if vals else None
+
+
 def recent_closed(n: int = 5) -> list[dict]:
     return closed_trades()[-n:]
 
