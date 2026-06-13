@@ -57,9 +57,13 @@ estrategias:
   mtf_ema_rsi:
     rsi_periodo: 14
     atr_periodo: 14
-    atr_mult_stop: 1.5     # ATR_MULTIPLIER del original
-    ema_buffer: 0.005      # zona de ruido EMA20 semanal (0.5%)
-    rr_target: 2.0         # take-profit en R (TP1 del original; scale-out se afina después)
+    atr_mult_stop: 1.5         # ATR_MULTIPLIER del original
+    ema_buffer: 0.005          # zona de ruido EMA20 semanal (0.5%)
+    tp1_rr: 2.0                # TP1 a 2R
+    tp2_rr: 3.0                # TP2 a 3R
+    tp1_frac: 0.5              # cierra mitad en TP1
+    breakeven_after_tp1: true  # stop a entrada tras TP1
+    trail_mult: 0.0            # trailing chandelier por ATR (0 = off)
 
 # Histórico para backtest
 historico:
