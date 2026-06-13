@@ -13,5 +13,8 @@ db/*.db
 data_cache/*.csv
 data_cache/*.parquet
 
+# Logs del agendador local
+logs/
+
 # OS
 .DS_Store
