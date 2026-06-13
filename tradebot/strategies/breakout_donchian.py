@@ -11,10 +11,12 @@ from .base import Strategy
 
 class BreakoutDonchian(Strategy):
     name = "breakout_donchian"
+    base_tf = "4h"
+    aux_tfs = ()
 
-    def prepare(self, df: pd.DataFrame, df_trend: pd.DataFrame) -> pd.DataFrame:
+    def prepare(self, frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
         p = self.p
-        out = df.copy()
+        out = frames["4h"].copy()
         dc = ind.donchian(out, p["canal"])
         # canal de velas PREVIAS (shift 1) para no incluir la vela actual (no lookahead)
         upper_prev = dc["dc_upper"].shift(1)
