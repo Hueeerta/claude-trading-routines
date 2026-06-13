@@ -1,0 +1,13 @@
+# Core
+ccxt>=4.2          # cliente de exchange (Binance pública + testnet)
+pandas>=2.0,<2.3   # dataframes / indicadores
+numpy>=1.24,<2.0   # pin <2 por compatibilidad con backtesting.py
+pyyaml>=6.0        # config/settings.yaml
+python-dotenv>=1.0 # secretos desde .env
+requests>=2.31     # Telegram Bot API y feeds gratis
+
+# Backtesting: motor propio event-driven (tradebot/backtester.py) que reutiliza
+# la MISMA lógica de señales que la ejecución en vivo (una sola fuente de verdad,
+# sin lookahead). No usamos backtesting.py para evitar divergencia backtest/live.
+
+# Indicadores: implementados a mano en tradebot/indicators.py (sin pandas-ta)

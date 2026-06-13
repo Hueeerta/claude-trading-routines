@@ -1,0 +1,57 @@
+# Configuración del sistema. Los scripts y rutinas leen de aquí.
+
+# Pares a operar (símbolos ccxt unificados)
+symbols:
+  - BTC/USDT
+  - ETH/USDT
+
+# Temporalidades
+timeframe: "4h"        # timeframe de operación (swing)
+trend_timeframe: "1d"  # filtro de tendencia mayor
+
+# Capital y riesgo
+capital_inicial_usdt: 1000.0
+riesgo_por_trade: 0.02     # 2% del equity (techo). NO subir sin revisión conjunta.
+max_posiciones: 2          # posiciones simultáneas
+una_por_par: true          # nunca 2 posiciones en el mismo par
+drawdown_circuit_breaker: 0.10  # 10% de DD desde máximo -> no abrir nuevas
+
+# Costos para backtest (realistas)
+comision: 0.001    # 0.1% por lado
+slippage: 0.0005   # 0.05% estimado
+
+# Estrategia activa (se define al cerrar Fase 1)
+estrategia_activa: trend_ema
+
+# Parámetros por estrategia
+estrategias:
+  trend_ema:
+    ema_rapida: 20
+    ema_lenta: 50
+    ema_tendencia: 200   # sobre trend_timeframe (1d)
+    rsi_periodo: 14
+    rsi_max_entrada: 70  # no comprar sobre-extendido
+    atr_periodo: 14
+    atr_mult_stop: 2.0
+  breakout_donchian:
+    canal: 20
+    vol_periodo: 20
+    vol_mult: 1.2
+    atr_periodo: 14
+  meanrev_bollinger:
+    bb_periodo: 20
+    bb_desv: 2.0
+    rsi_periodo: 14
+    rsi_max_entrada: 30
+    atr_periodo: 14
+    atr_mult_stop: 1.5
+    rango_max_desv: 0.05   # |close/ema200_1d - 1| < esto => mercado en rango
+
+# Histórico para backtest
+historico:
+  anios: 2
+  dir_cache: data_cache
+
+# Telegram
+telegram:
+  parse_mode: HTML

@@ -1,0 +1,17 @@
+# Secretos
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Datos reconstruibles (no son fuente de verdad)
+db/*.db
+data_cache/*.csv
+data_cache/*.parquet
+
+# OS
+.DS_Store
