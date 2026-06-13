@@ -26,6 +26,8 @@ from tradebot.strategies.base import get_strategy  # noqa: E402
 
 LIMIT_POR_TF = {"1h": 800, "4h": 400, "1d": 400, "1w": 300}
 DUST_FRAC = 0.10  # si queda <10% del tamaño en el exchange, la posición se cerró
+# Acciones que ameritan avisar por Telegram (lo demás es ruido y no gasta nada)
+NOTABLE = {"ABRIR", "CERRAR", "STOP_EJECUTADO", "MOVER_STOP", "BLOQUEADO"}
 
 
 def _equity_and_cash(open_pos, prices, capital0):
@@ -34,6 +36,25 @@ def _equity_and_cash(open_pos, prices, capital0):
     cash = capital0 + closed_pnl - tied
     open_value = sum(p["size"] * prices.get(p["symbol"], p["entry"]) for p in open_pos)
     return cash + open_value, cash
+
+
+def _telegram_resumen(estrategia, equity, acciones) -> str:
+    """Mensaje escueto solo con lo notable (sin emojis decorativos)."""
+    lineas = [f"Ciclo {estrategia} · equity ${equity:.2f}"]
+    for a in acciones:
+        t = a["tipo"]
+        if t == "ABRIR":
+            lineas.append(f"ABRIR {a['symbol']} @ {a['entry']:.4f} | stop {a['stop']:.4f} "
+                          f"| riesgo ${a['risk_usdt']} ({a['pct_capital']}% cap)")
+        elif t == "CERRAR":
+            lineas.append(f"CERRAR {a['symbol']} @ {a['exit']:.4f} | PnL ${a['pnl_usdt']}")
+        elif t == "STOP_EJECUTADO":
+            lineas.append(f"STOP {a['symbol']} @ {a['exit']:.4f} | PnL ${a['pnl_usdt']}")
+        elif t == "MOVER_STOP":
+            lineas.append(f"Trailing {a['symbol']}: stop {a['stop_anterior']:.4f} -> {a['stop_nuevo']:.4f}")
+        elif t == "BLOQUEADO":
+            lineas.append(f"BLOQUEADO: {a['motivo']}")
+    return "\n".join(lineas)
 
 
 def _trailing_stop(prep, opened_ts, cur_stop, trail_mult):
@@ -56,6 +77,8 @@ def main() -> None:
     s = settings()
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--notify", action="store_true",
+                    help="enviar Telegram escueto solo si hay acciones notables")
     args = ap.parse_args()
     dry = args.dry_run
 
@@ -174,6 +197,14 @@ def main() -> None:
 
     if not dry:
         ledger.record_equity(round(equity, 2), round(cash, 2))
+
+    notables = [a for a in acciones if a["tipo"] in NOTABLE]
+    if args.notify and notables and not dry:
+        from tradebot import notify
+        try:
+            notify.send(_telegram_resumen(s["estrategia_activa"], equity, notables))
+        except Exception as e:  # nunca romper el ciclo por un fallo de notificación
+            print(f"aviso: fallo Telegram: {e}", file=sys.stderr)
 
     print(json.dumps({
         "dry_run": dry, "estrategia": s["estrategia_activa"],
