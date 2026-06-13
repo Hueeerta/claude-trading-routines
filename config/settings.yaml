@@ -1,9 +1,17 @@
 # Configuración del sistema. Los scripts y rutinas leen de aquí.
 
-# Pares a operar (símbolos ccxt unificados)
+# Pares a operar (símbolos ccxt unificados). 8 large-caps líquidos con 2+ años.
+# La rutina mensual debe revalidar este universo (ver scripts/check_universe.py):
+# si un par se deslista o pierde liquidez, proponer reemplazo (no editar a ciegas).
 symbols:
   - BTC/USDT
   - ETH/USDT
+  - SOL/USDT
+  - BNB/USDT
+  - XRP/USDT
+  - ADA/USDT
+  - AVAX/USDT
+  - LINK/USDT
 
 # Temporalidades
 timeframe: "4h"        # timeframe de operación (swing)
@@ -46,10 +54,17 @@ estrategias:
     atr_periodo: 14
     atr_mult_stop: 1.5
     rango_max_desv: 0.05   # |close/ema200_1d - 1| < esto => mercado en rango
+  mtf_ema_rsi:
+    rsi_periodo: 14
+    atr_periodo: 14
+    atr_mult_stop: 1.5     # ATR_MULTIPLIER del original
+    ema_buffer: 0.005      # zona de ruido EMA20 semanal (0.5%)
+    rr_target: 2.0         # take-profit en R (TP1 del original; scale-out se afina después)
 
 # Histórico para backtest
 historico:
-  anios: 2
+  anios: 2            # ventana de EVALUACIÓN
+  warmup_anios: 1     # historia extra para calentar indicadores (EMA200 1d, EMA20 1w)
   dir_cache: data_cache
 
 # Telegram
