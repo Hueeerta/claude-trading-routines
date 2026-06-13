@@ -45,17 +45,22 @@ def main() -> None:
     prices: dict[str, float] = {}
     signals: dict[str, dict] = {}
 
+    # límites de velas por timeframe para traer suficiente historia de indicadores
+    limit_por_tf = {"1h": 800, "4h": 400, "1d": 400, "1w": 300}
+
     for sym in s["symbols"]:
-        df = data.fetch_ohlcv(sym, s["timeframe"], limit=400)
-        df_trend = data.fetch_ohlcv(sym, s["trend_timeframe"], limit=400)
-        prep = strat.prepare(df, df_trend)
+        frames = {tf: data.fetch_ohlcv(sym, tf, limit=limit_por_tf.get(tf, 400))
+                  for tf in strat.frames_needed()}
+        prep = strat.prepare(frames)
         last = prep.iloc[-1]
         prices[sym] = float(last["close"])
+        tgt = last.get("target")
         signals[sym] = {
             "close": float(last["close"]),
             "long_entry": bool(last["long_entry"]),
             "long_exit": bool(last["long_exit"]),
             "stop": (None if last["stop"] != last["stop"] else float(last["stop"])),
+            "target": (float(tgt) if tgt is not None and tgt == tgt else None),
             "regla": strat._entry_reason(last) if bool(last["long_entry"]) else None,
         }
 

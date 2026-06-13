@@ -62,17 +62,23 @@ def _to_df(raw: list[list]) -> pd.DataFrame:
     return df.set_index("timestamp").astype(float)
 
 
-def _cache_path(symbol: str, timeframe: str) -> Path:
+def _cache_path(symbol: str, timeframe: str, years: float) -> Path:
     safe = symbol.replace("/", "")
-    return CACHE_DIR / f"{safe}_{timeframe}.csv"
+    return CACHE_DIR / f"{safe}_{timeframe}_{years:g}y.csv"
 
 
 def load_or_download(symbol: str, timeframe: str, years: float) -> pd.DataFrame:
-    """Lee del cache si existe; si no, descarga y guarda."""
+    """Lee del cache (keyed por años) si existe; si no, descarga y guarda."""
     CACHE_DIR.mkdir(exist_ok=True)
-    path = _cache_path(symbol, timeframe)
+    path = _cache_path(symbol, timeframe, years)
     if path.exists():
         return pd.read_csv(path, index_col="timestamp", parse_dates=["timestamp"])
     df = fetch_history(symbol, timeframe, years)
     df.to_csv(path)
     return df
+
+
+def load_frames(symbol: str, timeframes: list[str], years: float) -> dict[str, pd.DataFrame]:
+    """Carga varios timeframes de un símbolo. `years` debe incluir el warmup de
+    indicadores (ej. EMA200 diaria) además de la ventana de evaluación."""
+    return {tf: load_or_download(symbol, tf, years) for tf in timeframes}

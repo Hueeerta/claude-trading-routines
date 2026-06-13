@@ -7,22 +7,25 @@ from __future__ import annotations
 import pandas as pd
 
 from .. import indicators as ind
-from .base import Strategy, align_trend
+from .base import Strategy, align_higher
 
 
 class TrendEMA(Strategy):
     name = "trend_ema"
+    base_tf = "4h"
+    aux_tfs = ("1d",)
 
-    def prepare(self, df: pd.DataFrame, df_trend: pd.DataFrame) -> pd.DataFrame:
+    def prepare(self, frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
         p = self.p
-        out = df.copy()
+        out = frames["4h"].copy()
+        df_trend = frames["1d"]
         ema_f = ind.ema(out["close"], p["ema_rapida"])
         ema_s = ind.ema(out["close"], p["ema_lenta"])
         out["rsi"] = ind.rsi(out["close"], p["rsi_periodo"])
         out["atr"] = ind.atr(out, p["atr_periodo"])
 
         ema_trend_1d = ind.ema(df_trend["close"], p["ema_tendencia"])
-        uptrend = align_trend(df_trend["close"] > ema_trend_1d, out.index).fillna(False)
+        uptrend = align_higher(df_trend["close"] > ema_trend_1d, out.index)
 
         cross_up = (ema_f > ema_s) & (ema_f.shift(1) <= ema_s.shift(1))
         cross_dn = (ema_f < ema_s) & (ema_f.shift(1) >= ema_s.shift(1))

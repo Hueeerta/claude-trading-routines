@@ -7,15 +7,18 @@ from __future__ import annotations
 import pandas as pd
 
 from .. import indicators as ind
-from .base import Strategy, align_trend
+from .base import Strategy, align_higher
 
 
 class MeanRevBollinger(Strategy):
     name = "meanrev_bollinger"
+    base_tf = "4h"
+    aux_tfs = ("1d",)
 
-    def prepare(self, df: pd.DataFrame, df_trend: pd.DataFrame) -> pd.DataFrame:
+    def prepare(self, frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
         p = self.p
-        out = df.copy()
+        out = frames["4h"].copy()
+        df_trend = frames["1d"]
         bb = ind.bollinger(out["close"], p["bb_periodo"], p["bb_desv"])
         out["bb_mid"] = bb["bb_mid"]
         out["rsi"] = ind.rsi(out["close"], p["rsi_periodo"])
@@ -23,7 +26,7 @@ class MeanRevBollinger(Strategy):
 
         ema_trend_1d = ind.ema(df_trend["close"], 200)
         desv_1d = (df_trend["close"] / ema_trend_1d - 1).abs()
-        rango = align_trend(desv_1d < p["rango_max_desv"], out.index).fillna(False)
+        rango = align_higher(desv_1d < p["rango_max_desv"], out.index)
 
         out["long_entry"] = (
             (out["close"] < bb["bb_lower"]) & (out["rsi"] < p["rsi_max_entrada"]) & rango

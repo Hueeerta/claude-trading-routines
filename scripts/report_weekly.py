@@ -20,11 +20,12 @@ from tradebot.strategies.base import get_strategy  # noqa: E402
 def _backtest_esperado(strategy_name: str) -> dict:
     s = settings()
     params = strategy_params(strategy_name)
+    dl_years = s["historico"]["anios"] + s["historico"].get("warmup_anios", 1)
+    tfs = get_strategy(strategy_name, params).frames_needed()
     all_trades = []
     for sym in s["symbols"]:
-        df = data.load_or_download(sym, s["timeframe"], s["historico"]["anios"])
-        dft = data.load_or_download(sym, s["trend_timeframe"], s["historico"]["anios"])
-        res = backtester.run(get_strategy(strategy_name, params), df, dft,
+        frames = data.load_frames(sym, tfs, dl_years)
+        res = backtester.run(get_strategy(strategy_name, params), frames,
                              capital=s["capital_inicial_usdt"],
                              risk_pct=s["riesgo_por_trade"], comision=s["comision"],
                              slippage=s["slippage"], symbol=sym)
