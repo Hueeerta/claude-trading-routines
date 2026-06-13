@@ -42,6 +42,15 @@ Sin señal: 1 línea — "Sin entrada en [pares]: <razón breve>".
 - **No** operes dinero real. Solo testnet.
 - Si el circuit breaker está activo (DD > 10%), **no abras posiciones** y avisa.
 
+## Versionado (gitflow económico)
+
+Repo: `Hueeerta/claude-trading-routines`. `main` = estable. Identidad local del repo.
+
+- **Cambios de código/estrategia** (con el usuario): rama `feat/<algo>` o `fase<N>-<algo>` → commits con mensaje claro → merge a `main`. No commitear código directo a `main`.
+- **Deltas del ledger** (rutinas automáticas): commit DIRECTO a `main`, mensaje corto `data: <rutina> <fecha>` (ej. `data: ciclo-4h 2026-06-13`). Sin ramas ni PRs para datos: sería derroche de tokens. Agrupar el `git add ledger/ && commit && push` al final del ciclo.
+- Nunca commitear `.env`, `data_cache/`, `db/`, `.venv/` (ya en `.gitignore`).
+- Mensajes en español, imperativos, una línea de resumen + cuerpo solo si aporta.
+
 ## Overlay (lectura no vinculante)
 
 Registra tu lectura de sentimiento/fundamental junto al trade vía `overlay.py`, pero **no afecta la ejecución**. Sirve para medir, a lo largo de N trades, si tu criterio agrega valor sobre la regla. Si lo demuestra, se codifica en reglas (no antes).
